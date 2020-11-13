@@ -122,6 +122,10 @@ namespace UnityEngine.UI.Extensions
 
         public void OnScroll(Vector2 pos)
         {
+            if (_reset)
+            {
+                return;
+            }
 
             if (!_hasDisabledGridComponents)
             {
