@@ -19,6 +19,11 @@ namespace UnityEngine.UI.Extensions
         public Color disabledTextColor;
         public DropDownListItem SelectedItem { get; private set; } //outside world gets to get this, not set it
 
+        /// <summary>
+        /// Contains the included items. To add and remove items to/from this list, use the <see cref="AddItem(string)"/>,
+        /// <see cref="RemoveItem(string)"/> and <see cref="SetAvailableOptions(List{string})"/> methods as these also execute
+        /// the required methods to update to the current collection.
+        /// </summary>
         public List<string> AvailableOptions;
 
         //private bool isInitialized = false;
@@ -186,35 +191,72 @@ namespace UnityEngine.UI.Extensions
             return success;
         }
 
+        /// <summary>
+        /// Adds the item to <see cref="this.AvailableOptions"/> if it is not a duplicate and rebuilds the panel.
+        /// </summary>
+        /// <param name="item">Item to add.</param>
         public void AddItem(string item)
         {
-            AvailableOptions.Add(item);
-            RebuildPanel();
+            if (!this.AvailableOptions.Contains(item))
+            {
+                this.AvailableOptions.Add(item);
+                this.RebuildPanel();
+            }
+            else
+            {
+                Debug.LogWarning($"{nameof(AutoCompleteComboBox)}.{nameof(AddItem)}: items may only exists once. '{item}' can not be added.");
+            }
         }
 
+        /// <summary>
+        /// Removes the item from <see cref="this.AvailableOptions"/> and rebuilds the panel.
+        /// </summary>
+        /// <param name="item">Item to remove.</param>
         public void RemoveItem(string item)
         {
-            AvailableOptions.Remove(item);
-            RebuildPanel();
+            if (this.AvailableOptions.Contains(item))
+            {
+                this.AvailableOptions.Remove(item);
+                this.RebuildPanel();
+            }
         }
 
+        /// <summary>
+        /// Sets the given items as new content for the comboBox. Previous entries will be cleared.
+        /// </summary>
+        /// <param name="newOptions">New entries.</param>
         public void SetAvailableOptions(List<string> newOptions)
         {
-            AvailableOptions.Clear();
-            AvailableOptions = newOptions;
-            RebuildPanel();
-        }
-
-        public void SetAvailableOptions(string[] newOptions)
-        {
-            AvailableOptions.Clear();
-
-            for (int i = 0; i < newOptions.Length; i++)
+            var uniqueOptions = newOptions.Distinct().ToList();
+            if (newOptions.Count != uniqueOptions.Count)
             {
-                AvailableOptions.Add(newOptions[i]);
+                Debug.LogWarning($"{nameof(AutoCompleteComboBox)}.{nameof(SetAvailableOptions)}: items may only exists once. {newOptions.Count - uniqueOptions.Count} duplicates.");
             }
 
-            RebuildPanel();
+            this.AvailableOptions.Clear();
+            this.AvailableOptions = uniqueOptions;
+            this.RebuildPanel();
+        }
+
+        /// <summary>
+        /// Sets the given items as new content for the comboBox. Previous entries will be cleared.
+        /// </summary>
+        /// <param name="newOptions">New entries.</param>
+        public void SetAvailableOptions(string[] newOptions)
+        {
+            var uniqueOptions = newOptions.Distinct().ToList();
+            if (newOptions.Length != uniqueOptions.Count)
+            {
+                Debug.LogWarning($"{nameof(AutoCompleteComboBox)}.{nameof(SetAvailableOptions)}: items may only exists once. {newOptions.Length - uniqueOptions.Count} duplicates.");
+            }
+
+            this.AvailableOptions.Clear();
+            for (int i = 0; i < newOptions.Length; i++)
+            {
+                this.AvailableOptions.Add(newOptions[i]);
+            }
+
+            this.RebuildPanel();
         }
 
         public void ResetItems()
